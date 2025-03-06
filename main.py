@@ -97,5 +97,33 @@ def enroll_student(student_id, course_id):
 
     session.close()
 
+
+@cli.command()
+@click.option('--id', type = int, help = "Search by Student ID")
+@click.option('--name', help = "Search by Student Name")
+def search_student(id,name):
+    session = SessionLocal()
+    if id:
+        student = session.query(Student).filter(Student.id == id).first()
+    elif name:
+        student = session.query(Student).filter(Student.name == name).first()
+    else:
+        click.echo('Please provide either --id or --name to search for a student.')
+        return
+    
+    if not student:
+        click.echo('student not found')
+        return
+    profile_details = (
+        f"Bio: {student.profile.bio}, \n Address: {student.profile.address} \n Phone Number: {student.profile.phone_number}"
+        if student.profile
+        else 'No profile'
+    )
+
+    courses = ",".join([course.name for course in student.courses]) if student.courses else "no courses"
+    
+    click.echo(f"ID: {student.id}, Name: {student.name}, Age: {student.age} | Profile: {profile_details} | Courses: {courses}")
+    session.close()
+
 if __name__ == '__main__':
     cli()
